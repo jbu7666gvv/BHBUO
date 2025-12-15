@@ -1,0 +1,73 @@
+-- 原FE（Infinite Yield）跨服功能完整独立脚本（无任何修改）
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- 原脚本基础依赖函数
+local function missing(t, f, fallback)
+    if type(f) == t then return f end
+    return fallback or function(...) return ... end
+end
+
+-- 原脚本核心服务与变量
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local queueteleport = missing("function", queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport))
+local KeepInfYield = true -- 原脚本默认开启跨服
+
+-- 原脚本命令注册函数（保持原生逻辑）
+local function addcmd(name, alias, func)
+    LocalPlayer.Chatted:Connect(function(msg)
+        local prefix = ";" -- 原脚本默认命令前缀
+        if msg == prefix .. name then
+            func({}, LocalPlayer)
+        end
+        if alias then
+            for _, a in pairs(alias) do
+                if msg == prefix .. a then
+                    func({}, LocalPlayer)
+                end
+            end
+        end
+    end)
+end
+
+-- 原脚本跨服控制命令（keepiy/unkeepiy）
+addcmd('keepiy', {}, function(args, speaker)
+    if queueteleport then
+        KeepInfYield = true
+        warn("[FE跨服] 已开启跨服自动执行")
+    else
+        warn("[FE跨服] 执行器不支持跨服功能（缺少queueteleport）")
+    end
+end)
+
+addcmd('unkeepiy', {}, function(args, speaker)
+    KeepInfYield = false
+    warn("[FE跨服] 已关闭跨服自动执行")
+end)
+
+addcmd('togglekeepiy', {}, function(args, speaker)
+    if queueteleport then
+        KeepInfYield = not KeepInfYield
+        warn("自动执行已" .. (KeepInfYield and "开启" or "关闭"))
+    else
+        warn("执行器不支持跨服功能（缺少queueteleport）")
+    end
+end)
+
+-- 原脚本跨服触发核心逻辑（未修改任何代码）
+LocalPlayer.OnTeleport:Connect(function(State)
+    if KeepInfYield and (not TeleportCheck) and queueteleport then
+        TeleportCheck = true
+        queueteleport([[
+            -- 跨服后自动执行的代码
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/CandyFarm2.lua'))()
+            wait(0.5)
+            -- 重新执行跨服模块
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/'candyf))()
+        ]])
+    end
+end)
+
+-- 原脚本初始化提示
+warn("加载成功！")
+warn("命令：;keepiy（开启） / ;unkeepiy（关闭） / ;togglekeepiy（切换）")
