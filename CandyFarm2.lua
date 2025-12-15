@@ -1,16 +1,48 @@
 -- 跨服自动加载器（添加在脚本开头）
-local executionCount = _G.UniversalLoaderCount or 0
-if executionCount < 2 then
-    _G.UniversalLoaderCount = executionCount + 1
+-- 在 CandyFarm2.lua 的最开头添加这个修正版跨服代码
+do
+    -- 增强版跨服加载器
+    local crossServerKey = "BHBUO_CrossServer_v2"
+    if _G[crossServerKey] then return end
+    _G[crossServerKey] = true
     
-    local queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+    -- 保存原始跨服函数
+    local originalQueueTeleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
     
-    if queueteleport then
-        queueteleport([[
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/CandyFarm2.lua"))()
+    if originalQueueTeleport then
+        -- 正确构建跨服代码（避免字符串格式化问题）
+        local teleportCode = [[
+            -- 跨服后重新加载脚本
+            wait(1)  -- 等待服务器稳定
+            
+            -- 加载第一个脚本
+            local success1, err1 = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/CandyFarm2.lua"))()
+            end)
+            
             wait(0.5)
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/candyf"))()
-        ]])
+            
+            -- 加载第二个脚本
+            local success2, err2 = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/candyf"))()
+            end)
+            
+            if success1 and success2 then
+                warn("跨服加载成功")
+            end
+        ]]
+        
+        -- 设置跨服代码
+        originalQueueTeleport(teleportCode)
+        
+        -- 同时设置事件监听（双重保险）
+        if game.Players.LocalPlayer then
+            game.Players.LocalPlayer.OnTeleport:Connect(function(state)
+                if state == Enum.TeleportState.Started then
+                    originalQueueTeleport(teleportCode)
+                end
+            end)
+        end
     end
 end
 
