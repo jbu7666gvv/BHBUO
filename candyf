@@ -63,7 +63,7 @@ LocalPlayer.OnTeleport:Connect(function(State)
             loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/CandyFarm2.lua'))()
             wait(0.5)
             -- 重新执行跨服模块
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/'candyf))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/candyf))()
         ]])
     end
 end)
