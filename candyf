@@ -1,85 +1,31 @@
--- 原FE（Infinite Yield）跨服功能完整独立脚本（无任何修改）
-if not game:IsLoaded() then game.Loaded:Wait() end
+-- 跨服自动加载器 (仅跨服启动)
+if _G.UniversalLoaderExecuted then return end
+_G.UniversalLoaderExecuted = true
 
--- 原脚本基础依赖函数
-local function missing(t, f, fallback)
-    if type(f) == t then return f end
-    return fallback or function(...) return ... end
+local queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+
+if type(queueteleport) == "function" then
+    local teleportCode = [[
+        -- 跨服后加载脚本
+        warn("[自动跨服] 开始加载脚本...")
+        
+        -- 加载第一个脚本
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/CandyFarm2.lua"))()
+        end)
+        wait(0.5)
+        
+        -- 加载第二个脚本
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/candyf"))()
+        end)
+        wait(0.5)
+        
+        warn("[自动跨服] 脚本加载完成")
+    ]]
+    
+    queueteleport(teleportCode)
+    warn("[自动跨服] 跨服功能已设置")
+else
+    warn("[自动跨服] 不支持跨服功能")
 end
-
--- 原脚本核心服务与变量
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local queueteleport = missing("function", queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport))
-local KeepInfYield = true -- 原脚本默认开启跨服
-
--- 标志变量，用于防止重复加载
-local MainScriptLoaded = false
-
--- 加载主脚本的函数（只修改了这里的链接）
-local function LoadMainScript()
-    if not MainScriptLoaded then
-        MainScriptLoaded = true
-        -- 加载主脚本（修改为candyf）
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/candyf'))()
-        wait(0.5) -- 给主脚本一些初始化时间
-        warn("[FE跨服] 主脚本已加载")
-    end
-end
-
--- 原脚本命令注册函数（保持原生逻辑）
-local function addcmd(name, alias, func)
-    LocalPlayer.Chatted:Connect(function(msg)
-        local prefix = ";" -- 原脚本默认命令前缀
-        if msg == prefix .. name then
-            func({}, LocalPlayer)
-        end
-        if alias then
-            for _, a in pairs(alias) do
-                if msg == prefix .. a then
-                    func({}, LocalPlayer)
-                end
-            end
-        end
-    end)
-end
-
--- 原脚本跨服控制命令（keepiy/unkeepiy）
-addcmd('keepiy', {}, function(args, speaker)
-    if queueteleport then
-        KeepInfYield = true
-        warn("[FE跨服] 已开启跨服自动执行")
-    else
-        warn("[FE跨服] 执行器不支持跨服功能（缺少queueteleport）")
-    end
-end)
-
-addcmd('unkeepiy', {}, function(args, speaker)
-    KeepInfYield = false
-    warn("[FE跨服] 已关闭跨服自动执行")
-end)
-
-addcmd('togglekeepiy', {}, function(args, speaker)
-    if queueteleport then
-        KeepInfYield = not KeepInfYield
-        warn("自动执行已" .. (KeepInfYield and "开启" or "关闭"))
-    else
-        warn("执行器不支持跨服功能（缺少queueteleport）")
-    end
-end)
-
--- 原脚本跨服触发核心逻辑（未修改任何代码）
-LocalPlayer.OnTeleport:Connect(function(State)
-    if KeepInfYield and (not TeleportCheck) and queueteleport then
-        TeleportCheck = true
-        -- 这里也要修改为candyf链接，确保跨服后加载正确的脚本
-        queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/jbu7666gvv/BHBUO/refs/heads/main/CandyFarm2.lua'))()")
-    end
-end)
-
--- 第一次执行时立即加载主脚本
-LoadMainScript()
-
--- 原脚本初始化提示
-warn("加载成功！")
-warn("命令：;keepiy（开启） / ;unkeepiy（关闭） / ;togglekeepiy（切换）")
