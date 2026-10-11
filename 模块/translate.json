@@ -25,5 +25,7 @@
   "fuel": "燃料",
   "fullbright": "全亮",
   "tooltip": "工具提示",
+  "execute": "执行",
+  "default": "默认",
   "__no_translate": ["delta", "discord", "github"]
 }
